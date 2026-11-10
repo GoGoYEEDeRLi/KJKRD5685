@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>專屬約會邀請函</title>
+  <style>
+    :root {
+      --primary: #ff4757;
+      --primary-hover: #ff6b81;
+      --accent: #2ed573;
+      --bg-gradient: linear-gradient(135deg, #ffeef1 0%, #fed6e3 50%, #d8b5ff 100%);
+      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-border: rgba(255, 255, 255, 0.7);
+      --text-main: #2f3542;
+      --text-sub: #747d8c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 背景柔光裝飾球 */
+    .bg-glow {
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 107, 129, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
+      filter: blur(40px);
+      z-index: 1;
+      pointer-events: none;
+      animation: floatOrb 8s infinite alternate ease-in-out;
+    }
+    .bg-glow.top-left { top: -60px; left: -60px; }
+    .bg-glow.bottom-right { bottom: -60px; right: -60px; animation-delay: -4s; }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, 30px) scale(1.15); }
+    }
+
+    /* 精緻毛玻璃卡片 */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 38px 28px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 45px rgba(235, 77, 75, 0.12), 0 4px 15px rgba(0, 0, 0, 0.04);
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .step {
+      display: none;
+      animation: modernFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .step.active {
+      display: block;
+    }
+
+    @keyframes modernFadeIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* 階段標籤 */
+    .progress-pill {
+      display: inline-block;
+      padding: 5px 14px;
+      background: rgba(255, 71, 87, 0.1);
+      border: 1px solid rgba(255, 71, 87, 0.2);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      color: var(--text-main);
+      font-size: 23px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      line-height: 1.45;
+      letter-spacing: -0.2px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      min-height: 110px;
+      justify-content: center;
+    }
+
+    /* 精緻立體按鈕 */
+    button {
+      background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 22px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(255, 71, 87, 0.3);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      width: 100%;
+    }
+    button:hover {
+      box-shadow: 0 12px 24px rgba(255, 71, 87, 0.4);
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 10px rgba(255, 71, 87, 0.2);
+    }
+
+    /* 增生按鈕 */
+    .spawn-btn {
+      background: rgba(241, 242, 246, 0.95) !important;
+      color: #57606f !important;
+      border: 1px solid #dcdde1;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08) !important;
+      user-select: none;
+      z-index: 99;
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 選項卡片按鈕 */
+    .choice-btn {
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-main);
+      border: 1.5px solid rgba(220, 221, 225, 0.6);
+      text-align: left;
+      padding: 16px 20px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.02);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .choice-btn:hover {
+      background: #fff;
+      border-color: #ff6b81;
+      color: var(--primary);
+      box-shadow: 0 8px 20px rgba(255, 107, 129, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* 日期選擇器 */
+    .date-wrapper {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .date-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid rgba(255, 71, 87, 0.4);
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.9);
+      outline: none;
+      text-align: center;
+      transition: all 0.25s ease;
+    }
+    .date-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.15);
+    }
+
+    /* ===== 第四頁專屬波浪淚海與粒子 ===== */
+    #tear-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+      display: none; /* 預設完全隱藏，僅在第四頁開啟 */
+    }
+
+    #water-wrapper {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      transition: height 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .water-body {
+      width: 100%;
+      flex-grow: 1;
+      background: linear-gradient(180deg, rgba(64, 158, 255, 0.75) 0%, rgba(9, 132, 227, 0.92) 100%);
+      backdrop-filter: blur(4px);
+      box-shadow: inset 0 6px 20px rgba(255, 255, 255, 0.4);
+      position: relative;
+    }
+
+    /* SVG 雙層液體波浪 */
+    .wave-svg {
+      width: 200%;
+      height: 48px;
+      margin-bottom: -1px;
+      flex-shrink: 0;
+    }
+    .wave-back {
+      fill: rgba(64, 158, 255, 0.4);
+      animation: waveMove 6s linear infinite;
+    }
+    .wave-front {
+      fill: rgba(64, 158, 255, 0.75);
+      animation: waveMove 3.5s linear infinite reverse;
+    }
+
+    @keyframes waveMove {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* 水中浮動警示文字 */
+    .water-alert {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      animation: pulseAlert 1.2s infinite alternate ease-in-out;
+    }
+    @keyframes pulseAlert {
+      from { transform: translateX(-50%) translateY(0); opacity: 0.85; }
+      to { transform: translateX(-50%) translateY(-3px); opacity: 1; }
+    }
+
+    /* 逼真下落淚珠 */
+    .realistic-tear {
+      position: fixed;
+      width: 14px;
+      height: 22px;
+      background: radial-gradient(circle at 35% 35%, #ffffff 0%, #74b9ff 60%, #0984e3 100%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      transform: rotate(45deg);
+      box-shadow: 0 4px 10px rgba(9, 132, 227, 0.4);
+      pointer-events: none;
+      animation: tearFall 1.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    @keyframes tearFall {
+      0% { transform: translateY(-30px) rotate(45deg) scale(0.6); opacity: 1; }
+      85% { opacity: 0.9; }
+      100% { transform: translateY(105vh) rotate(45deg) scale(1.1); opacity: 0; }
+    }
+
+    /* 水下氣泡泡粒子 */
+    .bubble {
+      position: absolute;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+      animation: bubbleRise 3s ease-in infinite;
+      pointer-events: none;
+    }
+    @keyframes bubbleRise {
+      0% { transform: translateY(0) scale(0.6); opacity: 0; }
+      30% { opacity: 0.8; }
+      100% { transform: translateY(-300px) scale(1.2); opacity: 0; }
+    }
+
+    /* 卡片微震動 */
+    .card.shake {
+      animation: refinedShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes refinedShake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(5px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    /* 結果清單卡片 */
+    .summary-card {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(220, 221, 225, 0.5);
+      border-radius: 18px;
+      padding: 16px;
+      margin: 18px 0;
+      text-align: left;
+    }
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+    .summary-item strong {
+      color: var(--text-main);
+    }
+    .summary-item span {
+      color: var(--primary);
+      font-weight: 600;
+      max-width: 60%;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景光暈裝飾 -->
+  <div class="bg-glow top-left"></div>
+  <div class="bg-glow bottom-right"></div>
+
+  <!-- 第四頁專屬淚海圖層（預設完全不干擾其他頁面） -->
+  <div id="tear-container">
+    <div id="water-wrapper">
+      <svg class="wave-svg" viewBox="0 0 1200 48" preserveAspectRatio="none">
+        <path class="wave-back" d="M0,25 C150,45 350,5 500,25 C650,45 850,5 1000,25 C1150,45 1350,5 1500,25 L1500,48 L0,48 Z"></path>
+        <path class="wave-front" d="M0,18 C200,38 300,2 500,18 C700,34 800,2 1000,18 C1200,34 1300,2 1500,18 L1500,48 L0,48 Z"></path>
+      </svg>
+      <div class="water-body">
+        <div class="water-alert">🌊 委屈淚水暴漲中... 點「超級可愛」緊急抽水！ 🌊</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主卡片 -->
+  <div class="card" id="main-card">
+    
+    <!-- 關卡 1：強制答應（按鈕分裂） -->
+    <div class="step active" id="step-1">
+      <div class="progress-pill">STEP 01 / 07</div>
+      <h2>要不要一起去約會？✨</h2>
+      <div class="btn-group" id="btn-group-1" style="flex-direction: row; gap: 14px; align-items: center;">
+        <button id="btn-yes-1" onclick="clearClonesAndNext(2)">好啊！</button>
+        <button id="btn-no-root" class="spawn-btn" onclick="multiplyNo(event)">不要</button>
+      </div>
+    </div>
+
+    <!-- 關卡 2：選日子 -->
+    <div class="step" id="step-2">
+      <div class="progress-pill">STEP 02 / 07</div>
+      <h2>妳想挑哪一天去？📅</h2>
+      <div class="date-wrapper">
+        <input type="date" id="date-picker" class="date-input" />
+      </div>
+      <button onclick="handleDateSubmit(3)">就選這天出發！</button>
+    </div>
+
+    <!-- 關卡 3：選出發時段 -->
+    <div class="step" id="step-3">
+      <div class="progress-pill">STEP 03 / 07</div>
+      <h2>那我們什麼時候出發？⏰</h2>
+      <div class="btn-group">
+        <button class="choice-btn" onclick="saveChoice('出發時段', '悠閒中午（睡飽慢慢晃）', 4)">
+          <span style="font-size: 20px;">🌞</span>
+          <div>
+            <div style="font-weight: 700;">悠閒中午出發</div>
+            <div style="font-size: 13px; color: var(--text-sub);">睡到自然醒，吃飽喝足慢慢晃</div>
+          </div>
+        </button>
+        <button class="choice-btn" onclick="saveChoice('出發時段', '浪漫傍晚（日落接晚餐）', 4)">
+          <span style="font-size: 20px;">🌇</span>
+          <div>
+            <div style="font-weight: 700;">浪漫傍晚出發</div>
+            <div style="font-size: 13px; color: var(--text-sub);">看浪漫夕陽餘暉，無縫接奢華晚餐</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 關卡 4：可愛考驗（波浪淚海與動態物理淚珠） -->
+    <div class="step" id="step-4">
+      <div class="progress-pill">STEP 04 / 07</div>
+      <h2 id="step-4-title">真心話：妳覺得我可愛嗎？🥺</h2>
+      <div class="btn-group">
+        <button class="choice-btn" onclick="rescueFromTears(5)">
+          <span style="font-size: 20px;">🥰</span>
+          <div style="font-weight: 700;">超級可愛！全世界最可愛！</div>
+        </button>
+        <button class="choice-btn" id="btn-not-cute" onclick="triggerTears()" style="background: rgba(241, 242, 246, 0.7);">
+          <span style="font-size: 20px;">😒</span>
+          <div id="btn-not-cute-text" style="font-weight: 600; color: #57606f;">一點都不可愛</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 關卡 5：吃什麼 -->
+    <div class="step" id="step-5">
+      <div class="progress-pill">STEP 05 / 07</div>
+      <h2>今天想被哪種美食伺候？🍴</h2>
+      <div class="btn-group">
+        <button class="choice-btn" onclick="saveChoice('美食偏好', '精緻排餐 / 異國料理', 6)">
+          <span style="font-size: 20px;">🥩</span>
+          <div style="font-weight: 600;">精緻排餐 / 異國料理（氛圍感滿分）</div>
+        </button>
+        <button class="choice-btn" onclick="saveChoice('美食偏好', '頂級燒肉 / 暖心鍋物', 6)">
+          <span style="font-size: 20px;">🍲</span>
+          <div style="font-weight: 600;">暖呼呼鍋物 / 炙燒燒肉（大口吃肉）</div>
+        </button>
+        <button class="choice-btn" onclick="saveChoice('美食偏好', '隱藏版甜點＋特調咖啡', 6)">
+          <span style="font-size: 20px;">🍰</span>
+          <div style="font-weight: 600;">隱藏版甜點店＋特色咖啡（甜食胃）</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 關卡 6：吃飽後行程 -->
+    <div class="step" id="step-6">
+      <div class="progress-pill">STEP 06 / 07</div>
+      <h2>吃飽後的行程交給妳決定：🎯</h2>
+      <div class="btn-group">
+        <button class="choice-btn" onclick="saveChoice('餐後行程', '浪漫散步＋專屬攝影美照', 7)">
+          <span style="font-size: 20px;">📸</span>
+          <div style="font-weight: 600;">浪漫散步＋我當專屬攝影師拍美照</div>
+        </button>
+        <button class="choice-btn" onclick="saveChoice('餐後行程', '精選電影＋爆米花買單', 7)">
+          <span style="font-size: 20px;">🎬</span>
+          <div style="font-weight: 600;">挑部想看的電影，爆米花飲料我買單</div>
+        </button>
+        <button class="choice-btn" onclick="saveChoice('餐後行程', '兜風放空＋私房夜景吹風', 7)">
+          <span style="font-size: 20px;">🌃</span>
+          <div style="font-weight: 600;">找個安靜的私房景點吹夜風看夜景</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- 關卡 7：霸道條約 -->
+    <div class="step" id="step-7">
+      <div class="progress-pill">FINAL STEP</div>
+      <h2>最後確認：<br>這趟約會我全包，妳只要負責開心！</h2>
+      <div class="btn-group">
+        <button onclick="saveChoice('約會守則', '雙手雙腳贊成！', 8)">
+          🙌 雙手雙腳贊成！
+        </button>
+        <button onclick="saveChoice('約會守則', '勉為其難接受這份寵溺', 8)" style="background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);">
+          🥰 勉為其難接受這份寵溺
+        </button>
+      </div>
+    </div>
+
+    <!-- 結尾完成頁面 -->
+    <div class="step" id="step-8">
+      <div style="font-size: 42px; margin-bottom: 8px;">🎉</div>
+      <h2 style="font-size: 24px; color: var(--primary); margin-bottom: 8px;">約會契約正式生效！</h2>
+      <p style="color: var(--text-sub); font-size: 14px;">妳專屬的客製約會行程單已敲定：</p>
+      
+      <div class="summary-card" id="summary-container"></div>
+
+      <p style="margin-top: 14px; font-size: 13px; color: #a4b0be;">
+        長按截圖傳給我，我現在去訂位與安排！💌
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    const choices = {};
+    const noTexts = ['不要', '再想想', '點不到吧', '真的拒絕？', '不可能', '休想', '蛤？', '再點增生喔'];
+    let yesScale = 1;
+
+    // 日期預設明日
+    const datePicker = document.getElementById('date-picker');
+    const today = new Date();
+    today.setDate(today.getDate() + 1);
+    datePicker.min = today.toISOString().split('T')[0];
+    datePicker.value = datePicker.min;
+
+    // 關卡 1：分裂增生
+    function multiplyNo(e) {
+      e.stopPropagation();
+      const btnYes = document.getElementById('btn-yes-1');
+      yesScale += 0.16;
+      btnYes.style.transform = `scale(${yesScale})`;
+
+      for (let i = 0; i < 2; i++) {
+        createCloneButton();
+      }
+    }
+
+    function createCloneButton() {
+      const btn = document.createElement('button');
+      btn.className = 'spawn-btn clone-no';
+      btn.innerText = noTexts[Math.floor(Math.random() * noTexts.length)];
+      btn.style.position = 'fixed';
+      btn.style.width = 'auto';
+      btn.style.padding = '10px 18px';
+      btn.style.fontSize = '14px';
+
+      const padding = 70;
+      const x = Math.random() * (window.innerWidth - padding * 2) + padding;
+      const y = Math.random() * (window.innerHeight - padding * 2) + padding;
+
+      btn.style.left = `${x}px`;
+      btn.style.top = `${y}px`;
+      btn.onclick = multiplyNo;
+      document.body.appendChild(btn);
+    }
+
+    function clearClonesAndNext(stepNumber) {
+      document.querySelectorAll('.clone-no').forEach(el => el.remove());
+      nextStep(stepNumber);
+    }
+
+    function handleDateSubmit(nextStepNum) {
+      const selectedDate = document.getElementById('date-picker').value;
+      if (!selectedDate) {
+        alert('請先選個日子呀！');
+        return;
+      }
+      saveChoice('約會日期', selectedDate, nextStepNum);
+    }
+
+    // ===== 關卡 4：專屬淚水邏輯 =====
+    let waterLevel = 0;
+    let waterTimer = null;
+    let bubbleTimer = null;
+    const tearContainer = document.getElementById('tear-container');
+    const waterWrapper = document.getElementById('water-wrapper');
+    const waterBody = document.querySelector('.water-body');
+
+    function triggerTears() {
+      // 確保只在第四頁呈現並啟動
+      tearContainer.style.display = 'block';
+
+      // 卡片震動回饋
+      const card = document.getElementById('main-card');
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+
+      // 產生擬真水滴墜落
+      for (let i = 0; i < 6; i++) {
+        createRealisticTear();
+      }
+
+      // 水位上漲
+      waterLevel += 20;
+      if (waterLevel > 100) waterLevel = 100;
+      waterWrapper.style.height = `${waterLevel}%`;
+
+      // 文案更換
+      const notCutePhrases = ['痛徹心扉...💧', '良心不痛嗎？💔', '要被淚水淹沒了！🌊', '快按上面救救我！'];
+      document.getElementById('btn-not-cute-text').innerText = notCutePhrases[Math.floor(Math.random() * notCutePhrases.length)];
+      document.getElementById('step-4-title').innerText = '😭 心碎落淚中...（淚海持續上漲！）';
+
+      // 背景持續定時漲水與冒氣泡
+      if (!waterTimer) {
+        waterTimer = setInterval(() => {
+          if (waterLevel < 100) {
+            waterLevel += 3.5;
+            waterWrapper.style.height = `${waterLevel}%`;
+            createRealisticTear();
+          }
+        }, 750);
+      }
+
+      if (!bubbleTimer) {
+        bubbleTimer = setInterval(createBubble, 400);
+      }
+    }
+
+    function createRealisticTear() {
+      const tear = document.createElement('div');
+      tear.className = 'realistic-tear';
+      tear.style.left = `${Math.random() * 88 + 6}vw`;
+      document.body.appendChild(tear);
+      setTimeout(() => tear.remove(), 1300);
+    }
+
+    function createBubble() {
+      if (!tearContainer || tearContainer.style.display === 'none') return;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const size = Math.random() * 14 + 8;
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}%`;
+      waterBody.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 2900);
+    }
+
+    function rescueFromTears(nextStepNum) {
+      // 清空計時器
+      clearInterval(waterTimer);
+      clearInterval(bubbleTimer);
+      waterTimer = null;
+      bubbleTimer = null;
+
+      // 退潮並立即隱藏第四頁的淚水圖層
+      waterWrapper.style.height = '0%';
+      setTimeout(() => {
+        tearContainer.style.display = 'none';
+        waterLevel = 0;
+      }, 500);
+
+      // 清除可能殘留的淚滴 DOM
+      document.querySelectorAll('.realistic-tear').forEach(el => el.remove());
+
+      saveChoice('可愛認證', '破涕為笑！被認證宇宙第一可愛 🥰', nextStepNum);
+    }
+
+    // 通用步驟切換
+    function nextStep(stepNumber) {
+      // 離開第 4 頁時的保護防禦：非第 4 頁一律隱藏淚海圖層
+      if (stepNumber !== 4) {
+        tearContainer.style.display = 'none';
+        if (waterTimer) clearInterval(waterTimer);
+        if (bubbleTimer) clearInterval(bubbleTimer);
+      }
+
+      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+      const nextTarget = document.getElementById(`step-${stepNumber}`);
+      if (nextTarget) nextTarget.classList.add('active');
+    }
+
+    function saveChoice(category, value, nextStepNum) {
+      choices[category] = value;
+      if (nextStepNum === 8) {
+        renderSummary();
+      }
+      nextStep(nextStepNum);
+    }
+
+    function renderSummary() {
+      const container = document.getElementById('summary-container');
+      container.innerHTML = '';
+      for (const [key, val] of Object.entries(choices)) {
+        const item = document.createElement('div');
+        item.className = 'summary-item';
+        item.innerHTML = `<strong>${key}</strong><span>${val}</span>`;
+        container.appendChild(item);
+      }
+    }
+  </script>
+</body>
+</html>
